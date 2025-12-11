@@ -71,7 +71,7 @@ const config = {
             label: 'Book',
           },
           {
-            href: 'https://github.com/giaic/physical-ai-and-humanoid-robotics',
+            href: 'https://github.com/Tariq6610/Physical-Ai-and-Humanoid-Robotics',
             label: 'GitHub',
             position: 'right',
           },
@@ -94,7 +94,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/giaic/physical-ai-and-humanoid-robotics',
+                href: 'https://github.com/Tariq6610/Physical-Ai-and-Humanoid-Robotics',
               },
             ],
           },
