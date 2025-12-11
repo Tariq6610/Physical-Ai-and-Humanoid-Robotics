@@ -1,55 +1,51 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Physical AI and Humanoid Robotics Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Expert-Level Content
+All content must be expert-level, technically accurate, and production-ready. Content must be clear and authoritative, yet accessible to the target audience. Every concept should be explained with practical examples and real-world applications.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Technical Accuracy
+All code examples, configurations, and procedures must be verified to work in the specified environment. All content must be tested against actual implementations before publication.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Test-First (NON-NEGOTIABLE)
+All code implementations (backend services, frontend components, ROS nodes) must have corresponding tests written before implementation. TDD cycle: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Integration Testing
+Focus areas requiring integration tests: ROS 2 node communications, Docusaurus chatbot integration, RAG pipeline end-to-end flow, simulation-ROS bridge functionality.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Documentation Standards
+All content follows Docusaurus-compatible markdown format. Code examples use language-tagged blocks. Visuals use Mermaid for diagrams. All content maintains consistent terminology with the glossary.
 
-### [PRINCIPLE_6_NAME]
+### VI. Progressive Learning
+Content must be structured to build upon previous concepts. Each chapter must clearly indicate prerequisites and learning outcomes. Complex topics must be broken into digestible lessons.
 
+## Additional Constraints
 
-[PRINCIPLE__DESCRIPTION]
+### Technology Stack Requirements
+- ROS 2 Humble Hawksbill (exclusively as specified in clarifications)
+- Docusaurus v3 for documentation
+- FastAPI for backend services
+- Qdrant for vector database
+- NVIDIA Isaac for AI/robotics components
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Performance Standards
+- RAG chatbot response time: <3 seconds for typical queries
+- Page load time: <1 second for Largest Contentful Paint (LCP)
+- All code examples must run in reasonable timeframes for learning context
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Development Workflow
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### Review Process
+Each chapter undergoes three-stage review: 1) Peer Review for clarity and flow, 2) Technical Validation to ensure all code works as described, 3) Final Polish for grammar, style, and formatting consistency.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Quality Gates
+- All code examples must pass automated tests
+- All content must pass technical validation
+- All links and references must be verified
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+All development must comply with these principles. Any deviation requires explicit approval and documentation of the exception. The constitution supersedes all other practices and must be referenced during all major decisions.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-12-11 | **Last Amended**: 2025-12-11

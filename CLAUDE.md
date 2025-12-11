@@ -1,4 +1,4 @@
-# Gemini CLI Rules
+# Claude Code Rules
 
 This file is generated during init for the selected agent.
 
@@ -208,10 +208,3 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
-
-## Active Technologies
-- Python 3.10+, Node.js 20.x (for Docusaurus) + Docusaurus v3, React, FastAPI, Qdrant, Sentence Transformers, ROS 2 Humble (002-project-master-spec)
-- Qdrant Cloud (Vector DB), local Markdown files for content (002-project-master-spec)
-
-## Recent Changes
-- 002-project-master-spec: Added Python 3.10+, Node.js 20.x (for Docusaurus) + Docusaurus v3, React, FastAPI, Qdrant, Sentence Transformers, ROS 2 Humble

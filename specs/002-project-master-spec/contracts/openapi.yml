@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: Physical AI and Humanoid Robotics RAG Chatbot API
+  description: API for the RAG (Retrieval-Augmented Generation) chatbot system that answers questions about the Physical AI and Humanoid Robotics book content.
+  version: 1.0.0
+  contact:
+    name: Physical AI and Humanoid Robotics Team
+    url: https://example.com
+    email: info@example.com
+servers:
+  - url: https://api.physical-ai-robotics.com
+    description: Production server
+  - url: https://staging.api.physical-ai-robotics.com
+    description: Staging server
+  - url: http://localhost:8000
+    description: Development server
+paths:
+  /chat:
+    post:
+      summary: Send a message to the RAG chatbot
+      description: Sends a user query to the chatbot and receives a response based on the book content.
+      operationId: chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            example:
+              message: "What is the difference between ROS 2 and ROS 1?"
+              history: []
+      responses:
+        '200':
+          description: Successful response from the chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              example:
+                response: "ROS 2 was designed to address the limitations of ROS 1, including real-time support, multiple DDS implementations, improved security, and better cross-platform compatibility."
+                sources: ["module1-core-robotics/ch1-intro-ros.md"]
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+      x-code-samples:
+        - lang: curl
+          source: |
+            curl -X POST https://api.physical-ai-robotics.com/chat \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer YOUR_TOKEN" \
+              -d '{"message": "What is ROS 2?", "history": []}'
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: API is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The user's message or question
+          example: "How do I create a ROS 2 node?"
+        history:
+          type: array
+          description: Conversation history (optional)
+          items:
+            $ref: '#/components/schemas/Message'
+          example: []
+        userId:
+          type: string
+          description: Optional user identifier for tracking (ephemeral)
+          example: "user-12345"
+    Message:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Role of the message sender
+          example: "user"
+        content:
+          type: string
+          description: Content of the message
+          example: "What is ROS 2?"
+    ChatResponse:
+      type: object
+      required:
+        - response
+      properties:
+        response:
+          type: string
+          description: The chatbot's response to the user's message
+          example: "ROS 2 (Robot Operating System 2) is a flexible framework for writing robot applications..."
+        sources:
+          type: array
+          description: List of source documents used to generate the response
+          items:
+            type: string
+          example: ["module1-core-robotics/ch1-intro-ros.md", "module1-core-robotics/ch2-ros-nodes-topics.md"]
+        timestamp:
+          type: string
+          format: date-time
+          description: When the response was generated
+          example: "2025-12-11T10:30:00Z"
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: Health status of the service
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the health check was performed
+          example: "2025-12-11T10:30:00Z"
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request format"
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_INPUT"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication for API access
+tags:
+  - name: chat
+    description: Chatbot interaction endpoints
+  - name: health
+    description: Health check endpoints

@@ -1,0 +1,33 @@
+# This file defines the services that will be deployed to Render.
+# It's a declarative way to manage your infrastructure as code.
+# See https://render.com/docs/render-yaml for more information.
+
+services:
+  # Frontend Service (Docusaurus Static Site)
+  - type: staticsite
+    name: physical-ai-robotics-docs
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: docs/build
+    rootDir: docs
+    envVars:
+      # This will be updated with the actual backend URL after the backend service is deployed
+      - key: BACKEND_URL
+        sync: false # Set to true to automatically update from the backend service URL
+
+  # Backend Service (FastAPI Web Service)
+  - type: web
+    name: physical-ai-robotics-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+    rootDir: backend
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13 # Explicitly set Python version for consistency
+      - key: QDRANT_URL
+        sync: false # Set to true to automatically update from a Render secret file or value
+      - key: QDRANT_API_KEY
+        sync: false # Set to true to automatically update from a Render secret file or value
+      - key: QDRANT_COLLECTION_NAME
+        value: book_content

@@ -1,0 +1,85 @@
+name: Frontend Performance Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'docs/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        cd docs
+        npm ci
+
+    - name: Build Docusaurus site
+      run: |
+        cd docs
+        npm run build
+
+    - name: Run Lighthouse performance audit
+      uses: treosh/lighthouse-ci-action@v10
+      with:
+        urls: |
+          http://localhost:3000
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+        configPath: './lighthouserc.json'
+
+    - name: Run Web Vitals monitoring
+      run: |
+        # Install puppeteer for web vitals testing
+        cd docs
+        npm install puppeteer
+        # Run a simple performance test using puppeteer
+        node ../scripts/check-web-vitals.js || echo "Web vitals check completed"
+
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'docs/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        cd docs
+        npm ci
+
+    - name: Build Docusaurus site
+      run: |
+        cd docs
+        npm run build
+      env:
+        CI: true
+
+    - name: Verify build output
+      run: |
+        cd docs
+        ls -la build/
+        # Check that build contains expected files
+        if [ ! -f "build/index.html" ]; then
+          echo "Build failed - index.html not found"
+          exit 1
+        fi
