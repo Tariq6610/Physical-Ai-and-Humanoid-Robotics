@@ -25,3 +25,6 @@ coverage/
 
 # Docusaurus specific
 .docusaurus/
+
+# Sensitive configuration files
+.gemini/settings.json

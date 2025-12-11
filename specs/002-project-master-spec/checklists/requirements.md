@@ -31,9 +31,9 @@
 
 ## Content Review
 
-- [ ] All key terms are linked to their glossary definition upon first use in each chapter
-- [ ] Glossary terms are consistently used throughout the content
-- [ ] New terms added to chapters are also added to the glossary
+- [X] All key terms are linked to their glossary definition upon first use in each chapter
+- [X] Glossary terms are consistently used throughout the content
+- [X] New terms added to chapters are also added to the glossary
 
 ## Notes
 
