@@ -46,6 +46,44 @@
 - [X] T018 Create the content ingestion script in `scripts/ingest.py` to process markdown from `docs/docs/` and load into Qdrant
 - [X] T019 [P] Write unit tests for the RAG service in `backend/tests/`
 - [X] T020 Run ingestion script (`scripts/ingest.py`) with placeholder content to verify the pipeline
+- [X] T080 [P2] Update RAG service with real Qdrant client implementation in `backend/src/services/rag_service.py` - replace MockQdrantClient with actual QdrantClient
+- [X] T081 [P2] Update RAG service with real Sentence Transformer implementation in `backend/src/services/rag_service.py` - replace MockSentenceTransformer with actual SentenceTransformer
+- [X] T082 [P2] Update RAG service with real LLM client implementation in `backend/src/services/rag_service.py` - replace MockLLMClient with actual OpenAI or similar client
+- [X] T083 [P2] Add proper error handling and retry logic to RAG service in `backend/src/services/rag_service.py`
+- [X] T084 [P2] Add proper configuration and environment variable handling to RAG service in `backend/src/services/rag_service.py`
+- [X] T085 [P2] Add logging and monitoring capabilities to RAG service in `backend/src/services/rag_service.py`
+- [X] T086 [P2] Implement proper context formatting and prompt engineering in RAG service in `backend/src/services/rag_service.py`
+- [X] T087 [P2] Add performance optimization including caching to RAG service in `backend/src/services/rag_service.py`
+- [X] T088 [P2] Add proper authentication and rate limiting to chat API in `backend/src/api/chat.py`
+- [X] T089 [P2] Add comprehensive integration tests for the full RAG pipeline in `backend/tests/test_rag_integration.py`
+- [X] T090 [P2] Update ingestion script to properly embed and store content vectors in `scripts/ingest.py`
+- [X] T091 [P2] Add validation and quality checks to content ingestion in `scripts/ingest.py`
+
+---
+
+## Phase 2.5: RAG Chatbot Full Implementation
+
+**Purpose**: Complete the RAG chatbot implementation by replacing mock services with real implementations and adding production-ready features.
+
+- [X] T092 [P2.5] Install required dependencies for real implementations in `backend/requirements.txt` (openai, python-dotenv, tenacity for retries)
+- [X] T093 [P2.5] Create configuration management system in `backend/src/core/config.py` for environment variables and settings
+- [X] T094 [P2.5] Implement real Qdrant client integration in `backend/src/services/rag_service.py`
+- [X] T095 [P2.5] Implement real Sentence Transformer for embeddings in `backend/src/services/rag_service.py`
+- [X] T096 [P2.5] Implement real OpenAI client for LLM responses in `backend/src/services/rag_service.py`
+- [X] T097 [P2.5] Add comprehensive error handling and retry logic to RAG service in `backend/src/services/rag_service.py`
+- [X] T098 [P2.5] Add detailed logging to RAG service in `backend/src/services/rag_service.py` per spec requirements
+- [X] T099 [P2.5] Implement proper prompt engineering and context formatting in `backend/src/services/rag_service.py`
+- [X] T100 [P2.5] Add caching mechanism to RAG service in `backend/src/services/rag_service.py` for performance
+- [X] T101 [P2.5] Add rate limiting and authentication to chat API in `backend/src/api/chat.py`
+- [X] T102 [P2.5] Add comprehensive integration tests for full RAG pipeline in `backend/tests/test_rag_integration.py`
+- [X] T103 [P2.5] Update content ingestion script with proper embedding logic in `scripts/ingest.py`
+- [X] T104 [P2.5] Add health check endpoint to FastAPI app in `backend/src/main.py`
+- [X] T105 [P2.5] Create environment variable documentation in `backend/README.md`
+- [X] T106 [P2.5] Add performance monitoring and metrics collection to RAG service
+- [X] T107 [P2.5] Implement comprehensive error responses per OpenAPI spec in `backend/src/api/chat.py`
+- [X] T108 [P2.5] Add input validation and sanitization to chat request model in `backend/src/models/chat.py`
+- [X] T109 [P2.5] Create comprehensive test suite for error scenarios in `backend/tests/test_error_scenarios.py`
+- [X] T110 [P2.5] Add documentation for RAG service API endpoints and usage
 
 ---
 
@@ -163,9 +201,9 @@
 - [X] T047 [P] [M5] Create chapter skeleton `docs/docs/module5-rag-chatbot/ch14-building-chatbot.md`
 - [X] T048 [M5] Update `docs/sidebars.js` to include all Module 5 chapters
 - [X] T049 [M5] Implement the chatbot frontend widget in `docs/src/components/ChatbotWidget.tsx`
-- [ ] T050 [M5] Swizzle the Root component and add the ChatbotWidget to the site layout (`docs/src/theme/Root.tsx`)
-- [ ] T051 [M5] Configure the widget to communicate with the backend API
-- [ ] T052 [M5] Test the end-to-end chatbot functionality locally
+- [X] T050 [M5] Swizzle the Root component and add the ChatbotWidget to the site layout (`docs/src/theme/Root.tsx`)
+- [X] T051 [M5] Configure the widget to communicate with the backend API
+- [X] T052 [M5] Test the end-to-end chatbot functionality locally
 
 ---
 

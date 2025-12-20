@@ -36,6 +36,11 @@
 - Q: What are the performance requirements for the Docusaurus site? → A: Page load time should be <1 second for Largest Contentful Paint (LCP) under normal network conditions, with all content loading within 3 seconds.
 - Q: What are the performance requirements for the ROS 2 system components? → A: Node communication should have <100ms latency, and perception pipeline processing should complete within 30fps for real-time applications.
 
+### Session 2025-12-16
+- Q: What specific HTTP status codes or error messages should the RAG chatbot backend return when it's experiencing "trouble connecting" to its internal components (e.g., database, vector store) versus external APIs (e.g., OpenAI)? → A: Internal: 500, External: 503
+- Q: What level of detail should be captured in logs when the RAG chatbot backend encounters a connection error, and what are the expected log levels (e.g., INFO, WARN, ERROR) for different types of connection failures? → A: Full stack trace & payload at ERROR (Recommended)
+- Q: Should the frontend implement any retry mechanisms for the RAG chatbot connection when it receives a "trouble connecting" error? If so, what should be the retry strategy (e.g., number of retries, delay between retries)? → A: 3 retries with exponential backoff (Recommended)
+
 ## 2. Book Structure (Modules / Parts / Chapters)
 
 The book will be organized into six major modules, followed by appendices.
@@ -101,6 +106,16 @@ The book will be organized into six major modules, followed by appendices.
 - **Chapter 14: Building and Embedding the Chatbot**
   - **Description**: Provides a step-by-step guide to building, training, and embedding the RAG chatbot into the Docusaurus-based digital book, enabling it to answer questions about the book's content.
   - **Lesson Count**: ~4 lessons
+
+### Error Handling
+  - The RAG chatbot backend will return HTTP 500 for internal connection issues (e.g., database, vector store unavailability) and HTTP 503 for external API unavailability (e.g., OpenAI).
+  - The frontend should interpret these status codes to display appropriate user messages.
+
+### Logging
+  - When the RAG chatbot backend encounters a connection error, full stack traces and request/response payloads should be captured in logs at the ERROR level.
+
+### Frontend Error Handling & Retries
+  - The frontend will implement a retry mechanism for RAG chatbot connection errors with 3 retries and an exponential backoff strategy (e.g., 1s, 2s, 4s delay between retries).
 
 ### Module VI: Appendices & Reference
 - **Appendix A: Setup and Installation Guide**

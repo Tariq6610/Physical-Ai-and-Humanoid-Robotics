@@ -18,7 +18,7 @@ const ChatbotWidget = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', { // Assuming the backend is on the same host
+      const response = await fetch('http://localhost:8000/chat', { // Direct call to backend server during development
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,7 +26,7 @@ const ChatbotWidget = () => {
         body: JSON.stringify({ query: userInput }),
       });
       const data = await response.json();
-      setMessages([...newMessages, { sender: 'bot', text: data.answer }]);
+      setMessages([...newMessages, { sender: 'bot', text: data.response }]);
     } catch (error) {
       console.error("Error fetching chatbot response:", error);
       setMessages([...newMessages, { sender: 'bot', text: "Sorry, I'm having trouble connecting." }]);

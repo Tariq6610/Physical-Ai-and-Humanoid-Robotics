@@ -3,6 +3,13 @@ uvicorn
 qdrant-client
 sentence-transformers
 pydantic
+pydantic-settings
 markdown
 pytest
 python-dotenv
+openai
+google-generativeai
+tenacity
+slowapi
+python-jose[cryptography]
+passlib[bcrypt]

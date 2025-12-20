@@ -59,6 +59,7 @@
 .bot {
   background-color: var(--ifm-color-primary-lightest);
   align-self: flex-start;
+  color: white;
 }
 
 .chatInput {

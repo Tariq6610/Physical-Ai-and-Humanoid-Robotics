@@ -1,30 +1,16 @@
 import os
 import glob
-from qdrant_client import QdrantClient, models # Will need to install this
-from sentence_transformers import SentenceTransformer # Will need to install this
+from qdrant_client import QdrantClient, models
+from qdrant_client.http import models as qdrant_models
+from sentence_transformers import SentenceTransformer
 from typing import List, Dict
 import markdown
+import logging
+import uuid
 
-# Mock external dependencies for now
-class MockQdrantClient:
-    def __init__(self, url: str, api_key: str):
-        print(f"MockQdrantClient initialized with url: {url}")
-        print("NOTE: This is a mock Qdrant client. No actual data will be stored.")
-
-    def upsert(self, collection_name: str, points: List[models.PointStruct], wait: bool = False):
-        print(f"MockQdrantClient upserting {len(points)} points into collection: {collection_name}")
-        for point in points:
-            print(f"  Mock Upserted Point ID: {point.id}, Payload: {point.payload.get('source')}")
-
-class MockSentenceTransformer:
-    def __init__(self, model_name: str):
-        print(f"MockSentenceTransformer initialized with model: {model_name}")
-        print("NOTE: This is a mock Sentence Transformer. No actual embeddings will be generated.")
-
-    def encode(self, text: str, convert_to_tensor: bool = False) -> List[float]:
-        print(f"MockSentenceTransformer encoding text (first 50 chars): '{text[:50]}...'")
-        # Return a mock embedding (e.g., a list of zeros)
-        return [0.1] * 384 # common dimension for all-MiniLM-L6-v2
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def load_markdown_files(directory: str) -> List[Dict]:
     """
@@ -40,84 +26,171 @@ def load_markdown_files(directory: str) -> List[Dict]:
         })
     return documents
 
-def chunk_text(text: str, source_path: str) -> List[Dict]:
+def chunk_text(text: str, source_path: str, chunk_size: int = 1000, overlap: int = 100) -> List[Dict]:
     """
-    Parses markdown and chunks text into manageable pieces.
-    For simplicity, this mock implementation will treat each paragraph as a chunk.
-    In a real scenario, more sophisticated chunking would be used (e.g., based on headings, token limits).
+    Parses markdown and chunks text into manageable pieces with overlap.
+    Uses a more sophisticated approach than simple paragraph splitting.
     """
-    html = markdown.markdown(text)
-    # Simple chunking by paragraphs (can be improved)
-    chunks = html.split('<p>')
+    # Parse markdown to extract sections and content
+    lines = text.split('\n')
+    sections = []
+    current_section = {"title": "Introduction", "content": []}
+
+    for line in lines:
+        if line.startswith('#'):
+            # Save previous section
+            if current_section["content"]:
+                sections.append(current_section)
+            # Start new section
+            level = len(line) - len(line.lstrip('#'))
+            title = line.lstrip('# ').strip()
+            current_section = {"title": title, "content": []}
+        else:
+            current_section["content"].append(line)
+
+    # Add the last section
+    if current_section["content"]:
+        sections.append(current_section)
+
+    # Now chunk each section
     processed_chunks = []
-    for i, chunk in enumerate(chunks):
-        clean_text = chunk.strip().replace('</p>', '').replace('\n', ' ')
-        if clean_text:
-            # Attempt to extract a simple section/heading from the markdown.
-            # This is a very naive approach and should be improved for real use.
-            section = "Unknown Section"
-            if '#' in text:
-                first_heading_match = text.split('\n')[0]
-                if first_heading_match.startswith('#'):
-                    section = first_heading_match.lstrip('# ').strip()
+    for section in sections:
+        section_title = section["title"]
+        section_content = '\n'.join(section["content"])
+
+        # Break content into chunks of specified size with overlap
+        start = 0
+        while start < len(section_content):
+            end = start + chunk_size
+            if end > len(section_content):
+                end = len(section_content)
+
+            chunk_text = section_content[start:end]
 
             processed_chunks.append({
-                "text": clean_text,
+                "text": chunk_text,
                 "source": os.path.basename(source_path),
-                "section": section,
-                "chunk_id": f"{os.path.basename(source_path)}_{i}"
+                "section": section_title,
+                "chunk_id": str(uuid.uuid4())
             })
+
+            # Move start forward by chunk_size - overlap
+            start = end - overlap if end < len(section_content) else end
+
+            # Break if we've reached the end
+            if start >= len(section_content):
+                break
+
     return processed_chunks
 
 def ingest_content():
     # Environment variables for Qdrant connection
     qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
-    qdrant_api_key = os.getenv("QDRANT_API_KEY", None) # Can be None for local
+    qdrant_api_key = os.getenv("QDRANT_API_KEY", None)  # Can be None for local
     collection_name = os.getenv("QDRANT_COLLECTION_NAME", "book_content")
-    
-    # Initialize Qdrant client (using mock for now)
-    # For real usage: qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
-    qdrant_client = MockQdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+    embedding_model_name = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
 
-    # Initialize Sentence Transformer model (using mock for now)
-    # For real usage: embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-    embedding_model = MockSentenceTransformer('all-MiniLM-L6-v2')
+    # Initialize Qdrant client with real implementation
+    try:
+        if qdrant_api_key:
+            qdrant_client = QdrantClient(
+                url=qdrant_url,
+                api_key=qdrant_api_key,
+                timeout=30  # 30 second timeout
+            )
+        else:
+            # For local development without API key
+            qdrant_client = QdrantClient(
+                host="localhost",
+                port=6333,
+                timeout=30
+            )
+    except Exception as e:
+        logger.error(f"Failed to connect to Qdrant: {str(e)}")
+        return
 
-    print(f"Starting ingestion process for collection: {collection_name}")
-    print(f"Scanning markdown files in: docs/docs/")
+    # Initialize Sentence Transformer model with real implementation
+    try:
+        logger.info(f"Loading embedding model: {embedding_model_name}")
+        embedding_model = SentenceTransformer(embedding_model_name)
+        logger.info("Embedding model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load embedding model: {str(e)}")
+        return
+
+    logger.info(f"Starting ingestion process for collection: {collection_name}")
+    logger.info(f"Scanning markdown files in: docs/docs/")
 
     documents = load_markdown_files('docs/docs/')
-    print(f"Found {len(documents)} markdown files.")
+    logger.info(f"Found {len(documents)} markdown files.")
+
+    # Check if collection exists, create if it doesn't
+    try:
+        collections = qdrant_client.get_collections()
+        collection_exists = any(collection.name == collection_name for collection in collections.collections)
+
+        if not collection_exists:
+            # Create collection with appropriate vector size (384 for all-MiniLM-L6-v2)
+            vector_size = embedding_model.get_sentence_embedding_dimension()
+            logger.info(f"Creating collection '{collection_name}' with vector size {vector_size}")
+            qdrant_client.create_collection(
+                collection_name=collection_name,
+                vectors_config=qdrant_models.VectorParams(
+                    size=vector_size,
+                    distance=qdrant_models.Distance.COSINE
+                )
+            )
+            logger.info(f"Collection '{collection_name}' created successfully")
+        else:
+            logger.info(f"Collection '{collection_name}' already exists")
+    except Exception as e:
+        logger.error(f"Failed to create or check collection: {str(e)}")
+        return
 
     points_to_upsert = []
+    total_chunks = 0
+
     for doc in documents:
-        print(f"Processing document: {doc['source_path']}")
+        logger.info(f"Processing document: {doc['source_path']}")
         chunks = chunk_text(doc["content"], doc["source_path"])
-        
+
         for chunk in chunks:
-            # Generate embedding for each chunk
-            embedding = embedding_model.encode(chunk["text"])
-            
-            points_to_upsert.append(models.PointStruct(
-                id=chunk["chunk_id"], # Unique ID for each chunk
-                vector=embedding,
-                payload={
-                    "text": chunk["text"],
-                    "source": chunk["source"],
-                    "section": chunk["section"]
-                }
-            ))
-    
+            try:
+                # Generate embedding for each chunk
+                embedding = embedding_model.encode(chunk["text"]).tolist()
+
+                points_to_upsert.append(qdrant_models.PointStruct(
+                    id=chunk["chunk_id"],  # Unique ID for each chunk
+                    vector=embedding,
+                    payload={
+                        "text": chunk["text"],
+                        "source": chunk["source"],
+                        "section": chunk["section"]
+                    }
+                ))
+                total_chunks += 1
+
+                # Log progress every 10 chunks
+                if total_chunks % 10 == 0:
+                    logger.info(f"Processed {total_chunks} chunks so far...")
+
+            except Exception as e:
+                logger.error(f"Error processing chunk from {doc['source_path']}: {str(e)}")
+                continue
+
     if points_to_upsert:
-        print(f"Upserting {len(points_to_upsert)} points into Qdrant collection '{collection_name}'...")
-        qdrant_client.upsert(
-            collection_name=collection_name,
-            wait=True, # Wait for the operation to be completed
-            points=points_to_upsert
-        )
-        print("Ingestion complete.")
+        logger.info(f"Upserting {len(points_to_upsert)} points into Qdrant collection '{collection_name}'...")
+        try:
+            qdrant_client.upsert(
+                collection_name=collection_name,
+                wait=True,  # Wait for the operation to be completed
+                points=points_to_upsert
+            )
+            logger.info(f"Ingestion complete. Successfully ingested {len(points_to_upsert)} chunks.")
+        except Exception as e:
+            logger.error(f"Error during upsert operation: {str(e)}")
     else:
-        print("No content to ingest.")
+        logger.info("No content to ingest.")
 
 if __name__ == "__main__":
     ingest_content()

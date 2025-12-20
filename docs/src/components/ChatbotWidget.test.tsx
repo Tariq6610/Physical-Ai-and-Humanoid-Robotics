@@ -39,7 +39,7 @@ describe('ChatbotWidget', () => {
   });
 
   test('sends a message when send button is clicked', async () => {
-    const mockResponse = { answer: 'This is a test response' };
+    const mockResponse = { response: 'This is a test response' };
     (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       json: jest.fn().mockResolvedValue(mockResponse),
     } as Response);
@@ -72,7 +72,7 @@ describe('ChatbotWidget', () => {
   });
 
   test('sends a message when Enter key is pressed', async () => {
-    const mockResponse = { answer: 'This is a test response' };
+    const mockResponse = { response: 'This is a test response' };
     (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       json: jest.fn().mockResolvedValue(mockResponse),
     } as Response);
@@ -99,7 +99,7 @@ describe('ChatbotWidget', () => {
   });
 
   test('displays bot response after sending a message', async () => {
-    const mockResponse = { answer: 'This is a test response' };
+    const mockResponse = { response: 'This is a test response' };
     (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       json: jest.fn().mockResolvedValue(mockResponse),
     } as Response);
@@ -157,7 +157,7 @@ describe('ChatbotWidget', () => {
   test('shows loading indicator when fetching response', async () => {
     // Create a promise that doesn't resolve immediately to simulate loading
     const mockPromise = new Promise((resolve) => {
-      setTimeout(() => resolve({ json: () => ({ answer: 'Test response' }) }), 100);
+      setTimeout(() => resolve({ json: () => ({ response: 'Test response' }) }), 100);
     });
     (global.fetch as jest.MockedFunction<typeof fetch>).mockReturnValue(mockPromise as Promise<Response>);
 
