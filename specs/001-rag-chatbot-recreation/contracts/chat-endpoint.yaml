@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: RAG Chatbot API - Chat Endpoint
+  version: 2.0.0
+  description: |
+    Chat endpoint for RAG chatbot using OpenAI Agents SDK backend.
+    Maintains backward compatibility with existing API while adding session support.
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://physical-ai-backend.onrender.com
+    description: Production server (Render)
+
+paths:
+  /chat:
+    post:
+      summary: Send chat message and get AI response
+      description: |
+        Accepts a user query, processes it through the RAG pipeline using OpenAI Agents SDK,
+        retrieves relevant documentation from Qdrant, generates a response via Gemini LLM,
+        and returns the answer with source citations.
+
+        NEW in v2.0: Supports session management for multi-turn conversations.
+
+      operationId: sendChatMessage
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple_query:
+                summary: Simple question
+                value:
+                  query: "What is Physical AI?"
+                  session_id: null
+              follow_up_query:
+                summary: Follow-up with session
+                value:
+                  query: "How does it differ from traditional AI?"
+                  session_id: "550e8400-e29b-41d4-a716-446655440000"
+
+      responses:
+        '200':
+          description: Successful response with AI-generated answer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                success_with_sources:
+                  summary: Response with citations
+                  value:
+                    response: "Physical AI refers to artificial intelligence systems that interact with the physical world through robotics, sensors, and actuators. Unlike software-only AI, Physical AI requires understanding of physics, spatial reasoning, and real-world constraints."
+                    sources:
+                      - title: "Introduction to Physical AI"
+                        url: "/docs/intro/physical-ai"
+                        relevance_score: 0.92
+                      - title: "Core Concepts"
+                        url: "/docs/fundamentals/concepts"
+                        relevance_score: 0.87
+                    session_id: "550e8400-e29b-41d4-a716-446655440000"
+                    tokens_used: 245
+                    latency_ms: 1847
+
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_query:
+                  summary: Empty query string
+                  value:
+                    error_type: "validation"
+                    user_message: "Please enter a question"
+                    suggested_actions:
+                      - "Type your question in the chat box"
+                query_too_long:
+                  summary: Query exceeds character limit
+                  value:
+                    error_type: "validation"
+                    user_message: "Your question is too long (max 2000 characters)"
+                    suggested_actions:
+                      - "Please shorten your question"
+                      - "Break it into multiple questions"
+
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                rate_limit:
+                  summary: Too many requests
+                  value:
+                    error_type: "ratelimit"
+                    user_message: "You're sending questions too quickly. Please wait a moment."
+                    suggested_actions:
+                      - "Wait 60 seconds before trying again"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                qdrant_error:
+                  summary: Vector database unavailable
+                  value:
+                    error_type: "server"
+                    user_message: "Knowledge base temporarily unavailable. Please try again in a moment."
+                    suggested_actions:
+                      - "Retry in a few moments"
+                      - "Contact support if issue persists"
+                gemini_timeout:
+                  summary: LLM API timeout
+                  value:
+                    error_type: "timeout"
+                    user_message: "Response generation is taking longer than expected. Please try rephrasing your question."
+                    suggested_actions:
+                      - "Use simpler phrasing"
+                      - "Ask about a specific subtopic"
+
+      security:
+        - ApiKeyAuth: []
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User's question or message
+          example: "What are the main applications of humanoid robotics?"
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional session ID for multi-turn conversations. If null, creates new session.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - session_id
+      properties:
+        response:
+          type: string
+          description: AI-generated answer with markdown formatting
+          example: "Humanoid robotics applications include: 1) Healthcare assistance, 2) Customer service, 3) Education..."
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceCitation'
+          description: References to documentation used in response
+          maxItems: 5
+        session_id:
+          type: string
+          format: uuid
+          description: Session ID for this conversation
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        tokens_used:
+          type: integer
+          description: Total tokens consumed (for monitoring)
+          example: 245
+        latency_ms:
+          type: integer
+          description: Response generation time in milliseconds
+          example: 1847
+
+    SourceCitation:
+      type: object
+      required:
+        - title
+        - url
+      properties:
+        title:
+          type: string
+          description: Document or section title
+          example: "Introduction to Physical AI"
+        url:
+          type: string
+          format: uri
+          description: Link to source documentation
+          example: "/docs/intro/physical-ai"
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Similarity score from vector search
+          example: 0.92
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_type
+        - user_message
+      properties:
+        error_type:
+          type: string
+          enum: ["network", "timeout", "validation", "server", "ratelimit"]
+          description: Category of error
+          example: "timeout"
+        user_message:
+          type: string
+          description: User-friendly error message (no stack traces)
+          example: "Response generation is taking longer than expected."
+        suggested_actions:
+          type: array
+          items:
+            type: string
+          maxItems: 3
+          description: Actionable steps for user
+          example:
+            - "Try rephrasing your question"
+            - "Ask about a specific topic"
+        timestamp:
+          type: string
+          format: date-time
+          description: When error occurred
+          example: "2025-12-26T10:30:00Z"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Optional API key for rate limiting (future use)

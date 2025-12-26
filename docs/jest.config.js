@@ -15,7 +15,7 @@ module.exports = {
     '/node_modules/(?!(docusaurus|@docusaurus)/)'
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   collectCoverageFrom: [

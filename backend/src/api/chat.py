@@ -82,6 +82,37 @@ async def login():
     access_token = create_access_token(data={"sub": user_id})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@router.post("/api/chatkit/session")
+async def create_chatkit_session():
+    """
+    Create a ChatKit session with client_secret for frontend authentication.
+
+    This endpoint is called by ChatKit's getClientSecret callback to establish
+    a session between the frontend and backend.
+
+    Returns:
+        dict: Contains client_secret (JWT token) and session_id
+    """
+    import uuid
+
+    # Generate unique session ID
+    session_id = str(uuid.uuid4())
+
+    # Create JWT token with session_id
+    # ChatKit uses this as the client_secret
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    client_secret = create_access_token(
+        data={"sub": session_id, "type": "chatkit_session"},
+        expires_delta=access_token_expires
+    )
+
+    logger.info(f"Created ChatKit session: {session_id}")
+
+    return {
+        "client_secret": client_secret,
+        "session_id": session_id
+    }
+
 def is_off_topic_query(query: str) -> bool:
     """
     Checks if the query is off-topic based on the spec requirements.
@@ -110,21 +141,33 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
     """
     Handles chat requests from the frontend, processing them using the RAG service.
     Includes error handling for unavailable APIs and off-topic queries.
+    Supports session management for conversation history.
     """
     from uuid import uuid4
     request_id = str(uuid4())
 
     try:
-        # Check if the query is off-topic
+        # Extract session_id from request (query param, header, or generate new)
+        session_id = request.query_params.get("session_id")
+        if not session_id:
+            session_id = request.headers.get("X-Session-ID")
+        if not session_id:
+            session_id = str(uuid4())
+            logger.info(f"Generated new session_id: {session_id}")
+        else:
+            logger.info(f"Using existing session_id: {session_id}")
+
+        # Check if the query is off-topic (now handled by agent, but kept for backwards compatibility)
         if is_off_topic_query(chat_request.query):
             logger.info(f"Off-topic query detected: {chat_request.query}, request_id: {request_id}")
             return {
                 "response": "I can only answer questions about the Physical AI and Humanoid Robotics book content. Please ask a question related to robotics, AI, or the topics covered in the book.",
-                "request_id": request_id
+                "request_id": request_id,
+                "session_id": session_id
             }
 
-        # Attempt to get response from RAG service
-        response = rag_service.chat(chat_request.query)
+        # Attempt to get response from RAG service with session management
+        response = await rag_service.chat_async(chat_request.query, session_id=session_id)
 
         # Check if response indicates API unavailability
         if "unavailable" in response.lower() or "error" in response.lower():
@@ -138,7 +181,7 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
             )
             raise HTTPException(status_code=503, detail=error_response.dict())
 
-        return {"response": response, "request_id": request_id}
+        return {"response": response, "request_id": request_id, "session_id": session_id}
 
     except RateLimitExceeded:
         logger.warning(f"Rate limit exceeded for IP: {request.client.host}, request_id: {request_id}")

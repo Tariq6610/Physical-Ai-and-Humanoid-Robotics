@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import styles from './ChatbotWidget.module.css';
+import React, { useState } from 'react';
+import { getBackendURL } from '../utils/env';
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +18,7 @@ const ChatbotWidget = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/chat', { // Direct call to backend server during development
+      const response = await fetch(`${getBackendURL()}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,30 +36,123 @@ const ChatbotWidget = () => {
   };
 
   return (
-    <div className={styles.chatbotContainer}>
-      <button className={styles.chatToggleButton} onClick={toggleChat}>
-        {isOpen ? 'Close' : 'Chat'}
+    <div style={{
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      zIndex: 9999,
+    }}>
+      <button
+        onClick={toggleChat}
+        style={{
+          padding: '15px 25px',
+          backgroundColor: '#25c2a0',
+          color: 'white',
+          border: 'none',
+          borderRadius: '25px',
+          cursor: 'pointer',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+        }}
+      >
+        {isOpen ? '✕ Close' : '💬 Chat'}
       </button>
       {isOpen && (
-        <div className={styles.chatWindow}>
-          <div className={styles.chatHeader}>Robotics Assistant</div>
-          <div className={styles.chatMessages}>
+        <div style={{
+          position: 'absolute',
+          bottom: '60px',
+          right: '0',
+          width: '350px',
+          height: '500px',
+          backgroundColor: 'white',
+          borderRadius: '10px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '15px',
+            backgroundColor: '#25c2a0',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '18px',
+          }}>
+            Robotics Assistant
+          </div>
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}>
             {messages.map((msg, index) => (
-              <div key={index} className={`${styles.message} ${styles[msg.sender]}`}>
+              <div
+                key={index}
+                style={{
+                  padding: '10px 15px',
+                  borderRadius: '10px',
+                  maxWidth: '80%',
+                  alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                  backgroundColor: msg.sender === 'user' ? '#25c2a0' : '#f0f0f0',
+                  color: msg.sender === 'user' ? 'white' : '#333',
+                }}
+              >
                 {msg.text}
               </div>
             ))}
-            {isLoading && <div className={`${styles.message} ${styles.bot}`}>...</div>}
+            {isLoading && (
+              <div style={{
+                padding: '10px 15px',
+                borderRadius: '10px',
+                maxWidth: '80%',
+                alignSelf: 'flex-start',
+                backgroundColor: '#f0f0f0',
+                color: '#333',
+              }}>
+                Thinking...
+              </div>
+            )}
           </div>
-          <div className={styles.chatInput}>
+          <div style={{
+            padding: '15px',
+            borderTop: '1px solid #eee',
+            display: 'flex',
+            gap: '10px',
+          }}>
             <input
               type="text"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask a question..."
+              placeholder="Ask about robotics..."
+              style={{
+                flex: 1,
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '14px',
+              }}
             />
-            <button onClick={handleSendMessage}>Send</button>
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#25c2a0',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                fontWeight: 'bold',
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            >
+              Send
+            </button>
           </div>
         </div>
       )}

@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-3.5-turbo", env="OPENAI_MODEL")
     google_model: str = Field(default="gemini-2.0-flash", env="GOOGLE_MODEL")
 
+    # OpenAI Agents SDK with LiteLLM settings
+    gemini_api_key: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
+    llm_model: str = Field(default="gemini/gemini-2.0-flash", env="LLM_MODEL")
+
     # Embedding settings
     embedding_model_name: str = Field(default="all-MiniLM-L6-v2", env="EMBEDDING_MODEL_NAME")
 
@@ -28,6 +32,10 @@ class Settings(BaseSettings):
     app_version: str = Field(default="1.0.0", env="APP_VERSION")
     debug: bool = Field(default=False, env="DEBUG")
 
+    # Session Management (OpenAI Agents SDK)
+    session_db_path: str = Field(default="./conversations.db", env="SESSION_DB_PATH")
+    session_expiry_hours: int = Field(default=24, env="SESSION_EXPIRY_HOURS")
+
     # RAG settings
     retrieval_limit: int = Field(default=5, env="RETRIEVAL_LIMIT")
     similarity_threshold: float = Field(default=0.5, env="SIMILARITY_THRESHOLD")
@@ -35,6 +43,9 @@ class Settings(BaseSettings):
     # Rate limiting and security
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     rate_limit_window: int = Field(default=3600, env="RATE_LIMIT_WINDOW")  # in seconds
+
+    # CORS and Frontend URL
+    frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
 
     class Config:
         env_file = ".env"

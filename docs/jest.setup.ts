@@ -27,12 +27,16 @@ window.ResizeObserver = ResizeObserver;
 
 // Mock IntersectionObserver
 class IntersectionObserver {
+  root: Element | null = null;
+  rootMargin: string = '';
+  thresholds: ReadonlyArray<number> = [];
   observe = jest.fn();
   unobserve = jest.fn();
   disconnect = jest.fn();
+  takeRecords = jest.fn(() => []);
 }
 
-window.IntersectionObserver = IntersectionObserver;
+(window as any).IntersectionObserver = IntersectionObserver;
 
 // Mock window.scrollTo
 Object.defineProperty(window, 'scrollTo', {

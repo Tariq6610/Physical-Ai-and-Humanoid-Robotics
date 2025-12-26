@@ -6,7 +6,7 @@ const Root = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       {children}
-      <BrowserOnly fallback={<div>Loading chatbot...</div>}>
+      <BrowserOnly fallback={null}>
         {() => {
           const ChatbotWidget = require('../components/ChatbotWidget').default;
           return <ChatbotWidget />;

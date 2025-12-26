@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: RAG Chatbot API - Health Check Endpoint
+  version: 2.0.0
+  description: Health check endpoint for monitoring service availability and dependencies
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://physical-ai-backend.onrender.com
+    description: Production server (Render)
+
+paths:
+  /health:
+    get:
+      summary: Check service health status
+      description: |
+        Returns health status of the RAG chatbot backend including:
+        - API availability
+        - Qdrant vector database connectivity
+        - Gemini LLM API accessibility
+        - Session storage (SQLiteSession) health
+
+        Used by monitoring systems (Render, uptime monitors) to detect outages.
+
+      operationId: getHealthStatus
+
+      responses:
+        '200':
+          description: All systems operational
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              examples:
+                healthy:
+                  summary: All dependencies healthy
+                  value:
+                    status: "healthy"
+                    timestamp: "2025-12-26T10:30:00Z"
+                    dependencies:
+                      qdrant:
+                        status: "up"
+                        latency_ms: 45
+                      gemini_api:
+                        status: "up"
+                        latency_ms: 230
+                      session_storage:
+                        status: "up"
+                        db_size_mb: 12.5
+                    version: "2.0.0"
+
+        '503':
+          description: Service degraded or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              examples:
+                qdrant_down:
+                  summary: Vector database unreachable
+                  value:
+                    status: "degraded"
+                    timestamp: "2025-12-26T10:30:00Z"
+                    dependencies:
+                      qdrant:
+                        status: "down"
+                        error: "Connection timeout after 5s"
+                      gemini_api:
+                        status: "up"
+                        latency_ms: 210
+                      session_storage:
+                        status: "up"
+                        db_size_mb: 12.5
+                    version: "2.0.0"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+        - dependencies
+        - version
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "down"]
+          description: Overall service health
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check execution time
+          example: "2025-12-26T10:30:00Z"
+        dependencies:
+          type: object
+          required:
+            - qdrant
+            - gemini_api
+            - session_storage
+          properties:
+            qdrant:
+              $ref: '#/components/schemas/DependencyHealth'
+            gemini_api:
+              $ref: '#/components/schemas/DependencyHealth'
+            session_storage:
+              $ref: '#/components/schemas/DependencyHealth'
+        version:
+          type: string
+          description: API version
+          example: "2.0.0"
+
+    DependencyHealth:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: ["up", "down", "unknown"]
+          description: Dependency availability
+          example: "up"
+        latency_ms:
+          type: integer
+          description: Response time in milliseconds (if measurable)
+          example: 45
+        error:
+          type: string
+          nullable: true
+          description: Error message if status is "down"
+          example: "Connection timeout after 5s"
+        db_size_mb:
+          type: number
+          format: float
+          description: Database size (for session_storage only)
+          example: 12.5

@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: RAG Chatbot API - ChatKit Session Endpoint
+  version: 2.0.0
+  description: |
+    NEW endpoint for ChatKit frontend integration. Generates session tokens
+    that ChatKit uses to maintain conversation context with the custom FastAPI backend.
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://physical-ai-backend.onrender.com
+    description: Production server (Render)
+
+paths:
+  /api/chatkit/session:
+    post:
+      summary: Create or retrieve ChatKit session token
+      description: |
+        Called by ChatKit's getClientSecret() callback to establish or refresh
+        a session with the backend. Returns a client_secret token that ChatKit
+        uses for subsequent chat requests.
+
+        Session lifecycle:
+        1. First call: Creates new SQLiteSession, returns new token
+        2. Refresh call: Validates existing token, extends expiry, returns refreshed token
+        3. Expired token: Creates new session (orphans old conversation)
+
+      operationId: createChatkitSession
+
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+            examples:
+              new_session:
+                summary: First-time session creation
+                value:
+                  current_client_secret: null
+              refresh_session:
+                summary: Refresh existing session
+                value:
+                  current_client_secret: "sess_abc123xyz789..."
+
+      responses:
+        '200':
+          description: Session token created or refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+              examples:
+                new_session_created:
+                  summary: New session token
+                  value:
+                    client_secret: "sess_550e8400e29b41d4a716446655440000"
+                    session_id: "550e8400-e29b-41d4-a716-446655440000"
+                    expires_at: "2025-12-27T10:30:00Z"
+                refreshed_session:
+                  summary: Refreshed existing session
+                  value:
+                    client_secret: "sess_550e8400e29b41d4a716446655440000_refreshed"
+                    session_id: "550e8400-e29b-41d4-a716-446655440000"
+                    expires_at: "2025-12-27T11:45:00Z"
+
+        '401':
+          description: Invalid or expired token (creates new session)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+              examples:
+                expired_token:
+                  summary: Token expired, new session created
+                  value:
+                    client_secret: "sess_newtoken123..."
+                    session_id: "661f9511-f39c-52e5-b827-557766551111"
+                    expires_at: "2025-12-27T10:30:00Z"
+                    warning: "Previous session expired, new conversation started"
+
+        '500':
+          description: Session storage error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                db_error:
+                  summary: SQLite database failure
+                  value:
+                    error_type: "server"
+                    user_message: "Unable to initialize chat session. Please refresh the page."
+                    suggested_actions:
+                      - "Refresh your browser"
+                      - "Clear browser cache if issue persists"
+
+components:
+  schemas:
+    SessionRequest:
+      type: object
+      properties:
+        current_client_secret:
+          type: string
+          nullable: true
+          description: |
+            Existing session token to refresh. If null or missing, creates new session.
+          example: "sess_abc123xyz789..."
+
+    SessionResponse:
+      type: object
+      required:
+        - client_secret
+        - session_id
+        - expires_at
+      properties:
+        client_secret:
+          type: string
+          description: |
+            Opaque token that ChatKit includes in subsequent requests.
+            Format: sess_{session_id_without_hyphens}
+          example: "sess_550e8400e29b41d4a716446655440000"
+        session_id:
+          type: string
+          format: uuid
+          description: Unique session identifier (maps to SQLiteSession)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        expires_at:
+          type: string
+          format: date-time
+          description: Token expiration time (24 hours from creation)
+          example: "2025-12-27T10:30:00Z"
+        warning:
+          type: string
+          nullable: true
+          description: Optional warning message (e.g., previous session expired)
+          example: "Previous session expired, new conversation started"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_type
+        - user_message
+      properties:
+        error_type:
+          type: string
+          enum: ["network", "timeout", "validation", "server", "ratelimit"]
+          description: Error category
+          example: "server"
+        user_message:
+          type: string
+          description: User-friendly error message
+          example: "Unable to initialize chat session."
+        suggested_actions:
+          type: array
+          items:
+            type: string
+          maxItems: 3
+          description: Suggested next steps
+          example:
+            - "Refresh your browser"
+            - "Try again in a moment"
+        timestamp:
+          type: string
+          format: date-time
+          description: Error occurrence time
+          example: "2025-12-26T10:30:00Z"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Optional API key for backend authentication
