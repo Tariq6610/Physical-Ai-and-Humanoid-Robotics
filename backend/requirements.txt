@@ -4,6 +4,6 @@ qdrant-client
 fastembed
 pydantic
 pydantic-settings
-openai-agents[litellm]>=0.2.9
+openai-agents>=0.2.9
 slowapi
 python-jose[cryptography]

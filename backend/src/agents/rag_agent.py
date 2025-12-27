@@ -4,9 +4,8 @@ Defines the main agent for Physical AI and Humanoid Robotics Q&A using OpenAI Ag
 """
 
 import logging
-import os
-from agents import Agent
-from agents.extensions.models.litellm_model import LitellmModel
+from openai import AsyncOpenAI
+from agents import Agent, OpenAIChatCompletionsModel
 
 from src.core.config import get_settings
 from src.agents.tools import retrieve_documentation, check_topic_relevance
@@ -40,7 +39,7 @@ When handling errors:
 
 def create_rag_agent() -> Agent:
     """
-    Create and configure the RAG agent with function tools and LiteLLM model.
+    Create and configure the RAG agent with function tools and Gemini model.
 
     Returns:
         Agent: Configured agent instance ready for use with Runner
@@ -61,15 +60,26 @@ def create_rag_agent() -> Agent:
     if not settings.gemini_api_key:
         raise ValueError("GEMINI_API_KEY environment variable is required")
 
-    logger.info("Creating RAG agent with LiteLLM Gemini model...")
+    logger.info("Creating RAG agent with Gemini model via OpenAI-compatible endpoint...")
 
     try:
-        # Initialize LiteLLM model for Gemini
-        model = LitellmModel(
-            model=settings.llm_model,  # "gemini/gemini-2.0-flash"
-            api_key=settings.gemini_api_key
+        # Initialize AsyncOpenAI client pointing to Gemini's OpenAI-compatible endpoint
+        gemini_client = AsyncOpenAI(
+            api_key=settings.gemini_api_key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
         )
-        logger.info(f"Initialized LiteLLM model: {settings.llm_model}")
+
+        # Get model name (strip 'gemini/' prefix if present)
+        model_name = settings.llm_model
+        if model_name.startswith("gemini/"):
+            model_name = model_name[7:]  # Remove 'gemini/' prefix
+
+        # Create OpenAIChatCompletionsModel with Gemini client
+        model = OpenAIChatCompletionsModel(
+            model=model_name,
+            openai_client=gemini_client
+        )
+        logger.info(f"Initialized Gemini model via OpenAI-compatible endpoint: {model_name}")
 
         # Create agent with tools
         agent = Agent(
