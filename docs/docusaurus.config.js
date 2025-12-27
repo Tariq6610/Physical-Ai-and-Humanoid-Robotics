@@ -40,7 +40,7 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          routeBasePath: '/',
+          routeBasePath: 'docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -57,6 +57,11 @@ const config = {
       metadata: [
         {name: 'keywords', content: 'robotics, AI, physical AI, humanoid robotics, ROS 2, machine learning'},
       ],
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: false,
+        respectPrefersColorScheme: true,
+      },
       navbar: {
         title: 'Physical AI and Humanoid Robotics',
         logo: {
@@ -65,10 +70,9 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
+            to: '/docs/intro',
             label: 'Book',
+            position: 'left',
           },
           {
             href: 'https://github.com/Tariq6610/Physical-Ai-and-Humanoid-Robotics',
@@ -85,7 +89,7 @@ const config = {
             items: [
               {
                 label: 'Introduction',
-                to: '/',
+                to: '/docs/intro',
               },
             ],
           },

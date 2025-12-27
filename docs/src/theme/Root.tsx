@@ -9,7 +9,15 @@ const Root = ({ children }: { children: React.ReactNode }) => {
       <BrowserOnly fallback={null}>
         {() => {
           const ChatbotWidget = require('../components/ChatbotWidget').default;
-          return <ChatbotWidget />;
+          const ReadingProgress = require('../components/ReadingProgress').default;
+          const ScrollToTop = require('../components/ScrollToTop').default;
+          return (
+            <>
+              <ReadingProgress />
+              <ScrollToTop />
+              <ChatbotWidget />
+            </>
+          );
         }}
       </BrowserOnly>
     </>

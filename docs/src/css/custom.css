@@ -1,40 +1,700 @@
 /**
- * Any CSS rules you add here will be applied to the entire Docusaurus site.
+ * Physical AI & Humanoid Robotics - Enhanced Theme Styles
+ * Modern, professional design with robotics-inspired colors
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-/* You can override the default Infima variables here. */
+/* ============================================
+   🎨 THEME COLORS - Light Mode
+   ============================================ */
 :root {
-  --ifm-color-primary: #1c1e21;
-  --ifm-color-primary-dark: #191b1e;
-  --ifm-color-primary-darker: #181a1d;
-  --ifm-color-primary-darkest: #141618;
-  --ifm-color-primary-light: #1f2024;
-  --ifm-color-primary-lighter: #202225;
-  --ifm-color-primary-lightest: #242629;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-  --ifm-font-family-base: 'Inter', sans-serif;
-  --ifm-font-family-monospace: 'Source Code Pro', monospace;
+  /* Primary Brand Colors - Robotics Blue */
+  --ifm-color-primary: #2e7ddb;
+  --ifm-color-primary-dark: #2971c7;
+  --ifm-color-primary-darker: #266abc;
+  --ifm-color-primary-darkest: #1f579f;
+  --ifm-color-primary-light: #4289df;
+  --ifm-color-primary-lighter: #4d90e1;
+  --ifm-color-primary-lightest: #6da3e7;
+
+  /* Accent Colors */
+  --ifm-color-accent: #25c2a0;
+  --ifm-color-accent-dark: #20b594;
+  --ifm-color-accent-darker: #1da889;
+  --ifm-color-accent-light: #2acfac;
+  --ifm-color-accent-lighter: #2fd6b2;
+
+  /* Semantic Colors */
+  --ifm-color-success: #00c853;
+  --ifm-color-info: #2196f3;
+  --ifm-color-warning: #ff9800;
+  --ifm-color-danger: #f44336;
+
+  /* Background & Surface Colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8f9fa;
+
+  /* Typography */
+  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.65;
+  --ifm-code-font-size: 90%;
+
+  /* Spacing & Layout */
+  --ifm-navbar-height: 4rem;
+
+  /* Border Radius */
+  --ifm-global-radius: 0.5rem;
+  --ifm-button-border-radius: 0.5rem;
+  --ifm-code-border-radius: 0.375rem;
+
+  /* Shadows */
+  --ifm-global-shadow-lw: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --ifm-global-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --ifm-global-shadow-tl: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Code Block Colors */
+  --docusaurus-highlighted-code-line-bg: rgba(46, 125, 219, 0.1);
+  --code-bg-color: #f6f8fa;
+  --code-border-color: #e1e4e8;
+
+  /* Transitions */
+  --ifm-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ifm-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Gradient Overlays */
+  --gradient-primary: linear-gradient(135deg, #2e7ddb 0%, #25c2a0 100%);
+  --gradient-primary-light: linear-gradient(135deg, rgba(46, 125, 219, 0.1) 0%, rgba(37, 194, 160, 0.1) 100%);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* ============================================
+   🌙 THEME COLORS - Dark Mode
+   ============================================ */
 [data-theme='dark'] {
-  --ifm-color-primary: #ffffff;
-  --ifm-color-primary-dark: #f2f2f2;
-  --ifm-color-primary-darker: #e6e6e6;
-  --ifm-color-primary-darkest: #cccccc;
-  --ifm-color-primary-light: #ffffff;
-  --ifm-color-primary-lighter: #ffffff;
-  --ifm-color-primary-lightest: #ffffff;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Primary Colors - Brighter for dark mode */
+  --ifm-color-primary: #4d90e1;
+  --ifm-color-primary-dark: #3681db;
+  --ifm-color-primary-darker: #2b78d1;
+  --ifm-color-primary-darkest: #2464b3;
+  --ifm-color-primary-light: #649fe7;
+  --ifm-color-primary-lighter: #75a8ea;
+  --ifm-color-primary-lightest: #96bef0;
+
+  /* Accent Colors */
+  --ifm-color-accent: #2fd6b2;
+  --ifm-color-accent-dark: #2acfac;
+  --ifm-color-accent-darker: #25c2a0;
+  --ifm-color-accent-light: #3dddb8;
+  --ifm-color-accent-lighter: #42e0bb;
+
+  /* Background Colors - Rich dark */
+  --ifm-background-color: #0d1117;
+  --ifm-background-surface-color: #161b22;
+
+  /* Text Colors */
+  --ifm-font-color-base: #e6edf3;
+  --ifm-font-color-secondary: #8b949e;
+
+  /* Code Block Colors */
+  --docusaurus-highlighted-code-line-bg: rgba(77, 144, 225, 0.15);
+  --code-bg-color: #161b22;
+  --code-border-color: #30363d;
+
+  /* Gradient Overlays */
+  --gradient-primary: linear-gradient(135deg, #4d90e1 0%, #2fd6b2 100%);
+  --gradient-primary-light: linear-gradient(135deg, rgba(77, 144, 225, 0.15) 0%, rgba(47, 214, 178, 0.15) 100%);
 }
 
+/* ============================================
+   📝 TYPOGRAPHY ENHANCEMENTS
+   ============================================ */
 body {
   font-family: var(--ifm-font-family-base);
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 { font-size: 2rem; font-weight: 700; }
+h3 { font-size: 1.5rem; font-weight: 600; }
+
+p {
+  line-height: var(--ifm-line-height-base);
+}
+
+/* ============================================
+   🎯 SMOOTH TRANSITIONS
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+a, button {
+  transition: all var(--ifm-transition-fast);
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* ============================================
+   💫 BUTTON ENHANCEMENTS
+   ============================================ */
+.button {
+  border-radius: var(--ifm-button-border-radius);
+  font-weight: 600;
+  transition: all var(--ifm-transition-fast);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+.button--primary {
+  background: var(--gradient-primary);
+  border: none;
+}
+
+/* ============================================
+   📦 CARD ENHANCEMENTS
+   ============================================ */
+.card {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-lw);
+  transition: all var(--ifm-transition-slow);
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.card:hover {
+  box-shadow: var(--ifm-global-shadow-md);
+  transform: translateY(-4px);
+}
+
+/* ============================================
+   💻 CODE BLOCK ENHANCEMENTS
+   ============================================ */
+code {
+  border-radius: var(--ifm-code-border-radius);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: var(--ifm-code-font-size);
+}
+
+pre {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+/* ============================================
+   🎨 NAVBAR ENHANCEMENTS
+   ============================================ */
+.navbar {
+  box-shadow: var(--ifm-global-shadow-lw);
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+[data-theme='dark'] .navbar {
+  background-color: rgba(13, 17, 23, 0.95);
+}
+
+.navbar__brand {
+  font-weight: 700;
+  transition: all var(--ifm-transition-fast);
+}
+
+.navbar__brand:hover {
+  transform: scale(1.05);
+}
+
+.navbar__link {
+  font-weight: 500;
+  transition: all var(--ifm-transition-fast);
+}
+
+.navbar__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* ============================================
+   📱 SIDEBAR ENHANCEMENTS
+   ============================================ */
+.menu__link {
+  border-radius: var(--ifm-global-radius);
+  transition: all var(--ifm-transition-fast);
+  font-weight: 500;
+}
+
+.menu__link:hover {
+  background-color: var(--gradient-primary-light);
+  color: var(--ifm-color-primary);
+}
+
+.menu__link--active {
+  background: var(--gradient-primary-light);
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* ============================================
+   🎯 TABLE OF CONTENTS
+   ============================================ */
+.table-of-contents__link {
+  transition: all var(--ifm-transition-fast);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* ============================================
+   ⚡ ADMONITIONS (CALLOUTS)
+   ============================================ */
+.admonition {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-lw);
+  border-left-width: 4px;
+}
+
+/* ============================================
+   🔍 SEARCH BAR
+   ============================================ */
+.navbar__search-input {
+  border-radius: var(--ifm-global-radius);
+  transition: all var(--ifm-transition-fast);
+}
+
+.navbar__search-input:focus {
+  box-shadow: 0 0 0 3px rgba(46, 125, 219, 0.2);
+}
+
+/* ============================================
+   💻 ENHANCED CODE BLOCKS
+   ============================================ */
+
+/* Code block container */
+div[class^='codeBlockContainer'] {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-md);
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border: 1px solid var(--code-border-color);
+}
+
+/* Code block header with language badge */
+div[class*='codeBlockTitle'] {
+  background: var(--code-bg-color);
+  border-bottom: 1px solid var(--code-border-color);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+/* Code block content */
+pre[class*='prism-code'] {
+  margin: 0;
+  padding: 1.25rem !important;
+  background: var(--code-bg-color) !important;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* Copy button enhancement */
+button[class*='copyButton'] {
+  background: var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+  transition: all var(--ifm-transition-fast);
+  padding: 0.5rem !important;
+  opacity: 0.7;
+}
+
+button[class*='copyButton']:hover {
+  background: var(--ifm-color-primary);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+button[class*='copyButton']:active {
+  transform: scale(0.95);
+}
+
+/* Inline code */
+code:not([class*='prism-code']) {
+  background: var(--code-bg-color);
+  border: 1px solid var(--code-border-color);
+  padding: 0.2em 0.4em;
+  font-size: 0.875em;
+  color: var(--ifm-color-primary-darker);
+  font-weight: 500;
+}
+
+[data-theme='dark'] code:not([class*='prism-code']) {
+  color: var(--ifm-color-primary-lighter);
+}
+
+/* Line numbers */
+span[class*='codeLineNumber'] {
+  color: var(--ifm-color-emphasis-600);
+  opacity: 0.6;
+}
+
+/* Highlighted lines */
+div[class*='codeBlockLines'] span[class*='highlighted'] {
+  background-color: var(--docusaurus-highlighted-code-line-bg);
+  display: block;
+  margin: 0 -1.25rem;
+  padding: 0 1.25rem;
+  border-left: 3px solid var(--ifm-color-primary);
+}
+
+/* ============================================
+   📦 CUSTOM CARDS & CALLOUTS
+   ============================================ */
+
+/* Feature cards */
+.card {
+  background: var(--ifm-background-surface-color);
+  border-radius: var(--ifm-global-radius);
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  transition: all var(--ifm-transition-slow);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ifm-global-shadow-md);
+  border-color: var(--ifm-color-primary-lighter);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: var(--ifm-color-primary);
+}
+
+/* Enhanced Admonitions */
+.admonition {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-lw);
+  border-left-width: 4px;
+  margin: 1.5rem 0;
+}
+
+.admonition-note {
+  border-left-color: var(--ifm-color-info);
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.admonition-tip {
+  border-left-color: var(--ifm-color-success);
+  background: rgba(0, 200, 83, 0.05);
+}
+
+.admonition-warning {
+  border-left-color: var(--ifm-color-warning);
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.admonition-danger {
+  border-left-color: var(--ifm-color-danger);
+  background: rgba(244, 67, 54, 0.05);
+}
+
+.admonition-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+/* ============================================
+   📖 READING EXPERIENCE ENHANCEMENTS
+   ============================================ */
+
+/* Article content spacing */
+article {
+  max-width: 900px;
+}
+
+article h1 {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+article h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+}
+
+article h3 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+article p {
+  margin-bottom: 1.25rem;
+}
+
+article ul, article ol {
+  margin-bottom: 1.5rem;
+}
+
+article li {
+  margin-bottom: 0.5rem;
+}
+
+/* Tables */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+  box-shadow: var(--ifm-global-shadow-lw);
+  margin: 1.5rem 0;
+}
+
+thead {
+  background: var(--gradient-primary-light);
+}
+
+th {
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+  padding: 1rem;
+  border-bottom: 2px solid var(--ifm-color-primary-lighter);
+}
+
+td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background: var(--ifm-background-surface-color);
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid var(--ifm-color-primary);
+  background: var(--gradient-primary-light);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: var(--ifm-global-radius);
+  font-style: italic;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   📊 READING PROGRESS INDICATOR
+   ============================================ */
+
+.reading-progress {
+  position: fixed;
+  top: var(--ifm-navbar-height);
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ifm-color-emphasis-200);
+  z-index: 9997;
+}
+
+.reading-progress-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  transition: width 0.1s ease;
+  box-shadow: 0 0 10px rgba(46, 125, 219, 0.5);
+}
+
+/* ============================================
+   🎨 LINK ENHANCEMENTS
+   ============================================ */
+
+article a:not(.button) {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all var(--ifm-transition-fast);
+  font-weight: 500;
+}
+
+article a:not(.button):hover {
+  border-bottom-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-dark);
+}
+
+/* External link icon */
+article a[target="_blank"]:not(.button)::after {
+  content: " ↗";
+  font-size: 0.875em;
+  opacity: 0.6;
+}
+
+/* ============================================
+   🦶 FOOTER ENHANCEMENTS
+   ============================================ */
+
+.footer {
+  background: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  padding: 3rem 0 2rem;
+}
+
+[data-theme='dark'] .footer {
+  background: var(--ifm-background-surface-color);
+  border-top-color: var(--ifm-color-emphasis-300);
+}
+
+.footer__title {
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+  margin-bottom: 1rem;
+}
+
+.footer__item {
+  transition: all var(--ifm-transition-fast);
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  transform: translateX(4px);
+}
+
+.footer__copyright {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  text-align: center;
+  color: var(--ifm-font-color-secondary);
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   ✨ SCROLL TO TOP BUTTON
+   ============================================ */
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 9996;
+  box-shadow: var(--ifm-global-shadow-md);
+  transition: all var(--ifm-transition-fast);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--ifm-global-shadow-tl);
+}
+
+/* ============================================
+   🎯 PAGINATION ENHANCEMENTS
+   ============================================ */
+
+.pagination-nav__link {
+  border-radius: var(--ifm-global-radius);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  transition: all var(--ifm-transition-fast);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: var(--ifm-global-shadow-md);
+  transform: translateY(-2px);
+}
+
+.pagination-nav__label::before,
+.pagination-nav__label::after {
+  color: var(--ifm-color-primary);
+  font-weight: 700;
+}
+
+/* ============================================
+   🎨 MISC ENHANCEMENTS
+   ============================================ */
+
+/* Badge component */
+.badge {
+  border-radius: 12px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge--primary {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.badge--secondary {
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-color-primary);
+  border: 1px solid var(--ifm-color-primary);
+}
+
+/* Image enhancements */
+img {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+article img {
+  margin: 1.5rem auto;
+  display: block;
+  max-width: 100%;
+}
+
+/* Video embeds */
+iframe {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow-md);
 }

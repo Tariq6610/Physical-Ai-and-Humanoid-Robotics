@@ -1,0 +1,17 @@
+.readingProgress {
+  position: fixed;
+  top: var(--ifm-navbar-height);
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ifm-color-emphasis-200);
+  z-index: 9997;
+  pointer-events: none;
+}
+
+.readingProgressBar {
+  height: 100%;
+  background: var(--gradient-primary);
+  transition: width 0.1s ease;
+  box-shadow: 0 0 10px rgba(46, 125, 219, 0.5);
+}
