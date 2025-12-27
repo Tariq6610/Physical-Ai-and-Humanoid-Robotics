@@ -54,9 +54,7 @@ export default function EnhancedChatbot() {
       },
     },
     header: {
-      enabled: true,
-      title: 'AI Assistant',
-      subtitle: 'Physical AI & Robotics Expert',
+      enabled: false,
     },
     history: {
       enabled: true,
@@ -192,10 +190,10 @@ export default function EnhancedChatbot() {
           {!isMinimized && (
             <div className={styles.chatBody}>
               {control ? (
-                <div className={styles.chatkitWrapper}>
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <ChatKit
                     control={control}
-                    className={styles.chatkit}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               ) : (
