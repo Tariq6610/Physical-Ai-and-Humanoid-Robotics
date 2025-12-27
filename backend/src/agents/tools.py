@@ -43,8 +43,12 @@ def retrieve_documentation(query: str, top_k: int = 5) -> str:
     This tool searches the vector database for documentation most relevant to the user's query.
     Use this tool whenever you need specific information from the documentation to answer a question.
 
+    IMPORTANT: Pass the user's query as-is or with minimal modification. The embeddings are contextual
+    and will match better with natural language queries. For general questions about the book,
+    include phrases like "Physical AI humanoid robotics book" in the query.
+
     Args:
-        query: The user's question or search query
+        query: The user's question or search query (use original query or add "Physical AI robotics" for context)
         top_k: Number of most relevant documentation chunks to retrieve (default: 5, max: 10)
 
     Returns:
@@ -52,11 +56,15 @@ def retrieve_documentation(query: str, top_k: int = 5) -> str:
 
     Examples:
         >>> retrieve_documentation("What is Physical AI?", top_k=3)
+        >>> retrieve_documentation("tell me about this Physical AI robotics book")
         >>> retrieve_documentation("How do humanoid robots use sensors?")
     """
     settings = get_settings()
     embedding_service = get_embedding_service()
     qdrant_client = get_qdrant_client()
+
+    # Enhance query with book context for better retrieval
+    enhanced_query = f"From the Physical AI and Humanoid Robotics book: {query}"
 
     # Validate and limit top_k
     top_k = min(max(1, top_k), 10)
@@ -64,9 +72,9 @@ def retrieve_documentation(query: str, top_k: int = 5) -> str:
     logger.info(f"Retrieving documentation for query: '{query[:50]}...' (top_k={top_k})")
 
     try:
-        # Generate query embedding
-        logger.debug("Generating query embedding...")
-        query_vector = embedding_service.encode(query)
+        # Generate query embedding with enhanced context
+        logger.debug(f"Generating query embedding for: {enhanced_query[:80]}...")
+        query_vector = embedding_service.encode(enhanced_query)
         logger.debug(f"Generated embedding vector of length {len(query_vector)}")
 
         # Search Qdrant for similar documents
@@ -119,42 +127,62 @@ Content: {text_content}
 @function_tool
 def check_topic_relevance(query: str) -> dict:
     """
-    Check if the user's query is related to Physical AI and Humanoid Robotics.
+    Check if the user's query is clearly OFF-TOPIC (like weather, sports, cooking).
 
-    This tool helps filter out off-topic questions and guide users back to relevant topics.
-    Use this tool before retrieving documentation to ensure the query is within scope.
+    IMPORTANT: Only use this tool for queries that are CLEARLY unrelated to the book/documentation.
+    For ANY question that COULD be about the book content, return relevant=True.
 
     Args:
         query: The user's question to check for relevance
 
     Returns:
         dict: Dictionary with keys:
-            - relevant (bool): Whether the query is on-topic
+            - relevant (bool): Whether the query is on-topic (default to True if uncertain)
             - reason (str): Explanation of the relevance decision
             - suggested_topics (List[str]): Suggested topics if off-topic
 
     Examples:
         >>> check_topic_relevance("What is a humanoid robot?")
-        {'relevant': True, 'reason': 'Query matches domain keywords', 'suggested_topics': []}
+        {'relevant': True, 'reason': 'Query is about robotics', 'suggested_topics': []}
         >>> check_topic_relevance("What's the weather today?")
-        {'relevant': False, 'reason': 'Query off-topic', 'suggested_topics': [...]}
+        {'relevant': False, 'reason': 'Query is about weather, not robotics', 'suggested_topics': [...]}
     """
     logger.info(f"Checking topic relevance for query: '{query[:50]}...'")
 
-    # Domain-specific keywords
+    # Domain-specific keywords (if ANY of these appear, it's relevant)
     domain_keywords = [
         "robot", "robotic", "humanoid", "ai", "artificial intelligence",
         "physical ai", "sensor", "actuator", "motor", "servo",
         "ros", "isaac", "simulation", "gazebo", "nvidia", "omniverse",
         "navigation", "manipulation", "perception", "locomotion",
         "kinematics", "dynamics", "control", "vision", "lidar",
-        "gripper", "end effector", "joint", "torque", "trajectory"
+        "gripper", "end effector", "joint", "torque", "trajectory",
+        # General book/documentation queries - ALWAYS relevant
+        "book", "documentation", "docs", "chapter", "section", "topic",
+        "tell me", "what is", "explain", "describe", "how does", "learn",
+        "introduction", "overview", "summary", "content", "cover"
+    ]
+
+    # Clearly off-topic keywords (weather, sports, cooking, entertainment, etc.)
+    off_topic_keywords = [
+        "weather", "forecast", "temperature", "rain", "sunny",
+        "football", "basketball", "soccer", "cricket", "sports", "game score",
+        "recipe", "cook", "baking", "ingredient",
+        "movie", "film", "tv show", "netflix", "music", "song",
+        "stock", "crypto", "bitcoin", "investment",
+        "politics", "election", "president"
     ]
 
     query_lower = query.lower()
 
-    # Check for keyword matches
-    is_relevant = any(keyword in query_lower for keyword in domain_keywords)
+    # First check if it's clearly off-topic
+    is_off_topic = any(keyword in query_lower for keyword in off_topic_keywords)
+
+    # Then check if it matches domain keywords
+    matches_domain = any(keyword in query_lower for keyword in domain_keywords)
+
+    # Default to relevant=True unless clearly off-topic
+    is_relevant = matches_domain or not is_off_topic
 
     # Suggested topics for off-topic queries
     suggested_topics = [
@@ -168,7 +196,7 @@ def check_topic_relevance(query: str) -> dict:
 
     result = {
         "relevant": is_relevant,
-        "reason": "Query matches domain keywords" if is_relevant else "Query appears to be off-topic",
+        "reason": "Query is related to the documentation" if is_relevant else "Query appears to be off-topic",
         "suggested_topics": [] if is_relevant else suggested_topics
     }
 

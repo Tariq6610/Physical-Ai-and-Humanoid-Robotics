@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     # RAG settings
     retrieval_limit: int = Field(default=5, env="RETRIEVAL_LIMIT")
-    similarity_threshold: float = Field(default=0.5, env="SIMILARITY_THRESHOLD")
+    similarity_threshold: float = Field(default=0.35, env="SIMILARITY_THRESHOLD")
 
     # Rate limiting and security
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
