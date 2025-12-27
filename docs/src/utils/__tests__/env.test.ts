@@ -51,7 +51,7 @@ describe('getBackendURL', () => {
       }
     };
 
-    expect(getBackendURL()).toBe('https://physical-ai-backend.onrender.com');
+    expect(getBackendURL()).toBe('https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app');
   });
 
   it('should return localhost for unknown hostnames (development fallback)', () => {

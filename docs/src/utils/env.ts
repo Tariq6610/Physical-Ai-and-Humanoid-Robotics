@@ -1,6 +1,6 @@
 /**
  * Environment Utility
- * Provides environment-aware backend URL resolution for Render deployments.
+ * Provides environment-aware backend URL resolution for deployments.
  */
 
 /**
@@ -9,7 +9,7 @@
  * @returns Backend URL appropriate for the current environment
  *
  * Logic:
- * - Production (physical-ai-robotics-docs.onrender.com) → https://physical-ai-backend.onrender.com
+ * - Production (physical-ai-robotics-docs.onrender.com) → Railway backend
  * - Development (localhost) → http://localhost:8000
  * - Other environments → http://localhost:8000 (default fallback)
  */
@@ -26,9 +26,9 @@ export function getBackendURL(): string {
 
   const hostname = window.location.hostname;
 
-  // Production Render deployment
+  // Production deployment (frontend on Render, backend on Railway)
   if (hostname === 'physical-ai-robotics-docs.onrender.com') {
-    return 'https://physical-ai-backend.onrender.com';
+    return 'https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app';
   }
 
   // Local development or other environments
