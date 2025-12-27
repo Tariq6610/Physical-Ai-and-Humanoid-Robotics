@@ -5,12 +5,15 @@ Defines the main agent for Physical AI and Humanoid Robotics Q&A using OpenAI Ag
 
 import logging
 from openai import AsyncOpenAI
-from agents import Agent, OpenAIChatCompletionsModel
+from agents import Agent, OpenAIChatCompletionsModel, set_tracing_disabled
 
 from src.core.config import get_settings
 from src.agents.tools import retrieve_documentation, check_topic_relevance
 
 logger = logging.getLogger(__name__)
+
+# Disable tracing for non-OpenAI providers (Gemini doesn't support OpenAI tracing)
+set_tracing_disabled(True)
 
 # Agent instructions
 AGENT_INSTRUCTIONS = """You are an expert Physical AI and Humanoid Robotics assistant, helping users learn from a comprehensive book/documentation on these topics.
