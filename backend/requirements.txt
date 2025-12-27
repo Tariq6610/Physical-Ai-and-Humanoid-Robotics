@@ -1,16 +1,9 @@
 fastapi
 uvicorn
 qdrant-client
-sentence-transformers
+fastembed
 pydantic
 pydantic-settings
-markdown
-pytest
-python-dotenv
-openai
 openai-agents[litellm]>=0.2.9
-google-generativeai
-tenacity
 slowapi
 python-jose[cryptography]
-passlib[bcrypt]

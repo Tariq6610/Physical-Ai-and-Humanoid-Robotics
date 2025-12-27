@@ -1,11 +1,12 @@
 """
 Embeddings Service
-Wrapper for SentenceTransformer model for generating text embeddings.
+Wrapper for FastEmbed model for generating text embeddings.
+Uses lightweight FastEmbed instead of sentence-transformers to reduce image size.
 """
 
 import logging
 from typing import List
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 from functools import lru_cache
 
 from src.core.config import get_settings
@@ -14,20 +15,23 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> TextEmbedding:
     """
     Get or create the embedding model instance.
     Uses LRU cache to ensure only one model instance is created.
 
     Returns:
-        SentenceTransformer: The initialized embedding model
+        TextEmbedding: The initialized FastEmbed model
     """
     settings = get_settings()
     model_name = settings.embedding_model_name
-    logger.info(f"Initializing SentenceTransformer with model: {model_name}")
+    # FastEmbed uses full model path
+    if not model_name.startswith("sentence-transformers/"):
+        model_name = f"sentence-transformers/{model_name}"
+    logger.info(f"Initializing FastEmbed with model: {model_name}")
 
     try:
-        model = SentenceTransformer(model_name)
+        model = TextEmbedding(model_name=model_name)
         logger.info(f"Successfully initialized embedding model: {model_name}")
         return model
     except Exception as e:
@@ -36,7 +40,7 @@ def get_embedding_model() -> SentenceTransformer:
 
 
 class EmbeddingService:
-    """Service for generating embeddings from text using SentenceTransformer."""
+    """Service for generating embeddings from text using FastEmbed."""
 
     def __init__(self):
         """Initialize the embedding service."""
@@ -63,7 +67,9 @@ class EmbeddingService:
 
         try:
             logger.debug(f"Encoding text: {text[:50]}...")
-            embedding = self.model.encode(text).tolist()
+            # FastEmbed returns a generator, convert to list and get first item
+            embeddings = list(self.model.embed([text]))
+            embedding = embeddings[0].tolist()
             logger.debug(f"Generated embedding of length {len(embedding)}")
             return embedding
         except Exception as e:
@@ -90,7 +96,7 @@ class EmbeddingService:
 
         try:
             logger.debug(f"Encoding batch of {len(texts)} texts")
-            embeddings = self.model.encode(texts).tolist()
+            embeddings = [emb.tolist() for emb in self.model.embed(texts)]
             logger.debug(f"Generated {len(embeddings)} embeddings")
             return embeddings
         except Exception as e:
@@ -106,7 +112,7 @@ class EmbeddingService:
         """
         return {
             "model_name": self.model_name,
-            "embedding_dimension": self.model.get_sentence_embedding_dimension(),
+            "embedding_dimension": 384,  # all-MiniLM-L6-v2 dimension
         }
 
 
