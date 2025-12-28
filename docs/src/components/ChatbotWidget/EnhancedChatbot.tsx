@@ -56,6 +56,7 @@ export default function EnhancedChatbot() {
   const [error, setError] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const chatkitRef = useRef<HTMLElement | null>(null);
+  const initializingRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -63,9 +64,10 @@ export default function EnhancedChatbot() {
 
   // Initialize ChatKit when the chat opens
   useEffect(() => {
-    if (!isOpen || !mounted || chatkitRef.current) return;
+    if (!isOpen || !mounted || chatkitRef.current || initializingRef.current) return;
 
     const initChatKit = async () => {
+      initializingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -74,7 +76,10 @@ export default function EnhancedChatbot() {
         await loadChatKitScript();
 
         const container = chatContainerRef.current;
-        if (!container) return;
+        if (!container) {
+          initializingRef.current = false;
+          return;
+        }
 
         // Create the openai-chatkit element
         const chatkit = document.createElement('openai-chatkit');
@@ -184,8 +189,7 @@ export default function EnhancedChatbot() {
           }
         }) as EventListener);
 
-        // Clear container and append chatkit
-        container.innerHTML = '';
+        // Append chatkit to container (don't clear - React manages children)
         container.appendChild(chatkit);
         chatkitRef.current = chatkit;
 
@@ -193,6 +197,7 @@ export default function EnhancedChatbot() {
         console.error('Failed to initialize ChatKit:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize chat');
         setIsLoading(false);
+        initializingRef.current = false;
       }
     };
 
@@ -200,14 +205,16 @@ export default function EnhancedChatbot() {
 
     // Cleanup function
     return () => {
-      if (chatkitRef.current && chatContainerRef.current) {
+      if (chatkitRef.current) {
         try {
-          chatContainerRef.current.innerHTML = '';
+          // Remove the chatkit element directly instead of clearing innerHTML
+          chatkitRef.current.remove();
         } catch (e) {
           // Ignore cleanup errors
         }
       }
       chatkitRef.current = null;
+      initializingRef.current = false;
       setIsReady(false);
     };
   }, [isOpen, mounted]);
@@ -228,9 +235,14 @@ export default function EnhancedChatbot() {
     setIsOpen(false);
     setIsMinimized(false);
     // Clean up chatkit instance
-    if (chatkitRef.current && chatContainerRef.current) {
-      chatContainerRef.current.innerHTML = '';
+    if (chatkitRef.current) {
+      try {
+        chatkitRef.current.remove();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
       chatkitRef.current = null;
+      initializingRef.current = false;
       setIsReady(false);
       setIsLoading(false);
     }
@@ -239,10 +251,15 @@ export default function EnhancedChatbot() {
   const handleRetry = () => {
     setError(null);
     setIsLoading(false);
-    if (chatContainerRef.current) {
-      chatContainerRef.current.innerHTML = '';
+    if (chatkitRef.current) {
+      try {
+        chatkitRef.current.remove();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
     }
     chatkitRef.current = null;
+    initializingRef.current = false;
     setIsReady(false);
   };
 
