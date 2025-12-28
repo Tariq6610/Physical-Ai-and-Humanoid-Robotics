@@ -32,3 +32,5 @@ coverage/
 .gemini/settings.json
 .claude/settings.json
 
+*.db-shm
+*.db-wal
