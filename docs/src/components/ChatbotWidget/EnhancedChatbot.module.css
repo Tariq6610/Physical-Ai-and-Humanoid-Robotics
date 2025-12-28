@@ -115,6 +115,10 @@
   transition: opacity 0.3s ease;
 }
 
+[data-theme='dark'] .fabTooltip {
+  color: #111;
+}
+
 .fab:hover .fabTooltip {
   opacity: 1;
 }

@@ -387,6 +387,7 @@
 
 [data-theme='dark'] .buttonSecondary {
   background: transparent;
+  color: white;
 }
 
 [data-theme='dark'] .buttonSecondary:hover {
