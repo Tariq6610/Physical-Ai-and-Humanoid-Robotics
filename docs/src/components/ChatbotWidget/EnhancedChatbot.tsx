@@ -1,227 +1,171 @@
 /**
- * Enhanced ChatKit Widget Component
- * Uses vanilla @openai/chatkit web component loaded from CDN
+ * Custom Chat Widget Component
+ * A compact, modern chat widget that works with the Gemini-powered RAG backend.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getBackendURL } from '../../utils/env';
 import styles from './EnhancedChatbot.module.css';
 
-// Declare the global chatkit element type
-declare global {
-  interface HTMLElementTagNameMap {
-    'openai-chatkit': HTMLElement & {
-      setOptions: (options: any) => void;
-    };
-  }
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  isStreaming?: boolean;
 }
 
-// Load ChatKit script from CDN
-const loadChatKitScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Check if already loaded
-    if (document.querySelector('script[src*="chatkit.js"]')) {
-      // Wait for custom element to be defined
-      if (customElements.get('openai-chatkit')) {
-        resolve();
-        return;
-      }
-      // Wait for it to be defined
-      customElements.whenDefined('openai-chatkit').then(() => resolve());
-      return;
-    }
+interface ChatResponse {
+  response: string;
+  request_id: string;
+  session_id: string;
+}
 
-    const script = document.createElement('script');
-    script.src = 'https://cdn.platform.openai.com/deployments/chatkit/chatkit.js';
-    script.async = true;
-
-    script.onload = () => {
-      // Wait for custom element to be registered
-      customElements.whenDefined('openai-chatkit').then(() => resolve());
-    };
-
-    script.onerror = () => reject(new Error('Failed to load ChatKit script'));
-
-    document.head.appendChild(script);
-  });
-};
+const SUGGESTED_PROMPTS = [
+  {
+    icon: '💡',
+    label: 'What is Physical AI?',
+    prompt: 'What is Physical AI and how does it relate to robotics?',
+  },
+  {
+    icon: '🤖',
+    label: 'Humanoid robots',
+    prompt: 'Can you explain what humanoid robots are and their key components?',
+  },
+  {
+    icon: '⚙️',
+    label: 'ROS 2 basics',
+    prompt: 'What is ROS 2 and why is it important for robotics?',
+  },
+  {
+    icon: '🎮',
+    label: 'Isaac Sim',
+    prompt: 'What is NVIDIA Isaac Sim and how is it used in robotics?',
+  },
+];
 
 export default function EnhancedChatbot() {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [hasNewMessage, setHasNewMessage] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const chatkitRef = useRef<HTMLElement | null>(null);
-  const initializingRef = useRef(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    // Generate session ID on mount
+    setSessionId(`session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
   }, []);
 
-  // Initialize ChatKit when the chat opens
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (!isOpen || !mounted || chatkitRef.current || initializingRef.current) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    const initChatKit = async () => {
-      initializingRef.current = true;
-      setIsLoading(true);
-      setError(null);
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen, isMinimized]);
 
-      try {
-        // Load the ChatKit script from CDN
-        await loadChatKitScript();
+  const generateMessageId = () => `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
-        const container = chatContainerRef.current;
-        if (!container) {
-          initializingRef.current = false;
-          return;
-        }
+  const sendMessage = useCallback(async (content: string) => {
+    if (!content.trim() || isLoading) return;
 
-        // Create the openai-chatkit element
-        const chatkit = document.createElement('openai-chatkit');
-
-        // Set explicit dimensions
-        chatkit.style.width = '100%';
-        chatkit.style.height = '100%';
-        chatkit.style.display = 'block';
-        chatkit.style.minHeight = '400px';
-
-        // Configure options
-        (chatkit as any).setOptions({
-          api: {
-            async getClientSecret(existing: string | null) {
-              console.log('getClientSecret called, existing:', !!existing);
-
-              const sessionUrl = `${getBackendURL()}/api/chatkit/session`;
-              console.log('Fetching session from:', sessionUrl);
-
-              const res = await fetch(sessionUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-              });
-
-              if (!res.ok) {
-                const errorMsg = `Failed to create ChatKit session: ${res.status} ${res.statusText}`;
-                console.error(errorMsg);
-                throw new Error(errorMsg);
-              }
-
-              const data = await res.json();
-              console.log('Session created successfully');
-              return data.client_secret;
-            },
-          },
-          theme: {
-            colorScheme: 'dark',
-            radius: 'round',
-            color: {
-              accent: { primary: '#4d90e1', level: 2 },
-            },
-          },
-          header: {
-            enabled: false,
-          },
-          history: {
-            enabled: true,
-            showDelete: true,
-            showRename: false,
-          },
-          startScreen: {
-            greeting: 'Welcome! Ask me anything about Physical AI and Humanoid Robotics.',
-            prompts: [
-              {
-                label: 'What is Physical AI?',
-                prompt: 'What is Physical AI and how does it relate to robotics?',
-                icon: 'lightbulb',
-              },
-              {
-                label: 'Explain humanoid robots',
-                prompt: 'Can you explain what humanoid robots are and their key components?',
-                icon: 'agent',
-              },
-              {
-                label: 'Tell me about ROS 2',
-                prompt: 'What is ROS 2 and why is it important for robotics?',
-                icon: 'settings-slider',
-              },
-              {
-                label: 'NVIDIA Isaac Sim',
-                prompt: 'What is NVIDIA Isaac Sim and how is it used in robotics?',
-                icon: 'desktop',
-              },
-            ],
-          },
-          composer: {
-            placeholder: 'Ask about Physical AI, robotics, ROS 2, sensors...',
-          },
-          threadItemActions: {
-            feedback: true,
-            retry: true,
-          },
-        });
-
-        // Add event listeners
-        chatkit.addEventListener('chatkit.ready', () => {
-          console.log('ChatKit is ready');
-          setIsReady(true);
-          setIsLoading(false);
-          setError(null);
-        });
-
-        chatkit.addEventListener('chatkit.error', ((event: CustomEvent) => {
-          console.error('ChatKit error:', event.detail?.error);
-          setError(event.detail?.error?.message || 'An error occurred');
-          setIsLoading(false);
-        }) as EventListener);
-
-        chatkit.addEventListener('chatkit.thread.change', ((event: CustomEvent) => {
-          const threadId = event.detail?.threadId;
-          console.log('Thread changed:', threadId);
-          if (threadId) {
-            sessionStorage.setItem('chatkit_thread_id', threadId);
-          }
-        }) as EventListener);
-
-        // Append chatkit to container (don't clear - React manages children)
-        container.appendChild(chatkit);
-        chatkitRef.current = chatkit;
-
-      } catch (err) {
-        console.error('Failed to initialize ChatKit:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize chat');
-        setIsLoading(false);
-        initializingRef.current = false;
-      }
+    const userMessage: Message = {
+      id: generateMessageId(),
+      role: 'user',
+      content: content.trim(),
+      timestamp: new Date(),
     };
 
-    initChatKit();
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+    setError(null);
 
-    // Cleanup function
-    return () => {
-      if (chatkitRef.current) {
-        try {
-          // Remove the chatkit element directly instead of clearing innerHTML
-          chatkitRef.current.remove();
-        } catch (e) {
-          // Ignore cleanup errors
-        }
+    // Add placeholder for assistant response
+    const assistantMessageId = generateMessageId();
+    setMessages(prev => [
+      ...prev,
+      {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+      },
+    ]);
+
+    try {
+      const response = await fetch(`${getBackendURL()}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: content.trim(),
+          session_id: sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
       }
-      chatkitRef.current = null;
-      initializingRef.current = false;
-      setIsReady(false);
-    };
-  }, [isOpen, mounted]);
+
+      const data: ChatResponse = await response.json();
+
+      // Update assistant message with response
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: data.response, isStreaming: false }
+            : msg
+        )
+      );
+
+      // Update session ID if returned
+      if (data.session_id) {
+        setSessionId(data.session_id);
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
+      setError(errorMessage);
+
+      // Remove the placeholder message on error
+      setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, sessionId]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(inputValue);
+    }
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    sendMessage(prompt);
+  };
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
-    setHasNewMessage(false);
     if (isMinimized) {
       setIsMinimized(false);
     }
@@ -234,33 +178,16 @@ export default function EnhancedChatbot() {
   const closeChat = () => {
     setIsOpen(false);
     setIsMinimized(false);
-    // Clean up chatkit instance
-    if (chatkitRef.current) {
-      try {
-        chatkitRef.current.remove();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-      chatkitRef.current = null;
-      initializingRef.current = false;
-      setIsReady(false);
-      setIsLoading(false);
-    }
   };
 
-  const handleRetry = () => {
+  const clearChat = () => {
+    setMessages([]);
     setError(null);
-    setIsLoading(false);
-    if (chatkitRef.current) {
-      try {
-        chatkitRef.current.remove();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-    }
-    chatkitRef.current = null;
-    initializingRef.current = false;
-    setIsReady(false);
+    setSessionId(`session-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   if (!mounted) return null;
@@ -270,16 +197,13 @@ export default function EnhancedChatbot() {
       {/* Floating Action Button */}
       {!isOpen && (
         <button
-          className={`${styles.fab} ${hasNewMessage ? styles.fabPulse : ''}`}
+          className={styles.fab}
           onClick={toggleChat}
           aria-label="Open AI Chat Assistant"
           title="Ask me anything about Physical AI & Robotics!"
         >
           <span className={styles.fabIcon}>🤖</span>
-          {hasNewMessage && <span className={styles.fabBadge}>!</span>}
-          <span className={styles.fabTooltip}>
-            Ask AI Assistant
-          </span>
+          <span className={styles.fabTooltip}>Ask AI Assistant</span>
         </button>
       )}
 
@@ -300,11 +224,19 @@ export default function EnhancedChatbot() {
               <div className={styles.headerInfo}>
                 <h3 className={styles.headerTitle}>AI Assistant</h3>
                 <p className={styles.headerSubtitle}>
-                  {isReady ? 'Online • Ready to help' : isLoading ? 'Connecting...' : 'Offline'}
+                  {isLoading ? 'Thinking...' : 'Online • Ask about robotics'}
                 </p>
               </div>
             </div>
             <div className={styles.headerActions}>
+              <button
+                className={styles.headerButton}
+                onClick={clearChat}
+                aria-label="Clear chat"
+                title="Clear chat"
+              >
+                🗑
+              </button>
               <button
                 className={styles.headerButton}
                 onClick={minimizeChat}
@@ -327,37 +259,116 @@ export default function EnhancedChatbot() {
           {/* Chat Body */}
           {!isMinimized && (
             <div className={styles.chatBody}>
-              {error ? (
-                <div className={styles.errorContainer}>
-                  <div className={styles.errorIcon}>⚠️</div>
-                  <p className={styles.errorText}>{error}</p>
-                  <button
-                    className={styles.retryButton}
-                    onClick={handleRetry}
+              <div className={styles.messagesContainer}>
+                {/* Welcome Screen */}
+                {messages.length === 0 && (
+                  <div className={styles.welcomeScreen}>
+                    <div className={styles.welcomeIcon}>🤖</div>
+                    <h4 className={styles.welcomeTitle}>
+                      Welcome! I'm your AI Assistant
+                    </h4>
+                    <p className={styles.welcomeText}>
+                      Ask me anything about Physical AI and Humanoid Robotics. I can help with ROS 2, sensors, simulation, and more.
+                    </p>
+                    <div className={styles.suggestedPrompts}>
+                      {SUGGESTED_PROMPTS.map((item, index) => (
+                        <button
+                          key={index}
+                          className={styles.promptButton}
+                          onClick={() => handlePromptClick(item.prompt)}
+                          disabled={isLoading}
+                        >
+                          <span className={styles.promptIcon}>{item.icon}</span>
+                          <span className={styles.promptLabel}>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Messages */}
+                {messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={`${styles.message} ${
+                      message.role === 'user' ? styles.userMessage : styles.assistantMessage
+                    }`}
                   >
-                    Retry
+                    {message.role === 'assistant' && (
+                      <div className={styles.messageAvatar}>🤖</div>
+                    )}
+                    <div className={styles.messageContent}>
+                      <div className={styles.messageBubble}>
+                        {message.isStreaming ? (
+                          <div className={styles.typingIndicator}>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                          </div>
+                        ) : (
+                          <p className={styles.messageText}>{message.content}</p>
+                        )}
+                      </div>
+                      <span className={styles.messageTime}>
+                        {formatTime(message.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Error Message */}
+                {error && (
+                  <div className={styles.errorMessage}>
+                    <span className={styles.errorIcon}>⚠️</span>
+                    <span>{error}</span>
+                    <button
+                      className={styles.retryButtonSmall}
+                      onClick={() => setError(null)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Area */}
+              <form className={styles.inputArea} onSubmit={handleSubmit}>
+                <div className={styles.inputWrapper}>
+                  <textarea
+                    ref={inputRef}
+                    className={styles.textInput}
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask about Physical AI, robotics, ROS 2..."
+                    rows={1}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="submit"
+                    className={styles.sendButton}
+                    disabled={!inputValue.trim() || isLoading}
+                    aria-label="Send message"
+                  >
+                    {isLoading ? (
+                      <span className={styles.sendingSpinner}></span>
+                    ) : (
+                      <span className={styles.sendIcon}>➤</span>
+                    )}
                   </button>
                 </div>
-              ) : (
-                <div
-                  ref={chatContainerRef}
-                  className={styles.chatkitContainer}
-                >
-                  {(isLoading && !isReady) && (
-                    <div className={styles.loadingContainer}>
-                      <div className={styles.loadingSpinner}></div>
-                      <p className={styles.loadingText}>Initializing AI Assistant...</p>
-                      <p className={styles.loadingSubtext}>Setting up secure connection</p>
-                    </div>
-                  )}
-                </div>
-              )}
+                <p className={styles.inputHint}>
+                  Press Enter to send • Shift+Enter for new line
+                </p>
+              </form>
             </div>
           )}
 
-          {/* Chat Footer - Only show when minimized */}
+          {/* Minimized Footer */}
           {isMinimized && (
-            <div className={styles.chatFooter}>
+            <div className={styles.chatFooter} onClick={() => setIsMinimized(false)}>
               <p className={styles.footerText}>Click to expand chat</p>
             </div>
           )}
