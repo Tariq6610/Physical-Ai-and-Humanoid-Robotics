@@ -219,7 +219,23 @@ Run with: `python scripts/cleanup_sessions.py`
 
 ## Deployment
 
-For production deployment:
+### Live Deployment
+
+The backend is deployed on Railway and accessible at:
+
+**Production URL:** https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app
+
+#### Production Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| Root | https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app/ |
+| Health Check | https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app/health |
+| Chat | https://physical-ai-and-humanoid-robotics-production-5817.up.railway.app/chat |
+
+### Self-Hosting
+
+For self-hosted deployment:
 
 1. Ensure all sensitive environment variables are properly configured
 2. Set `DEBUG` to `False`
